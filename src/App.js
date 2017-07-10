@@ -119,6 +119,7 @@ function _transform(parsed){
     ,js:[]
     ,css:[]
     }
+  var injected_scripts='<script src=https://unpkg.com/react/dist/react.min.js></script>\n<script src=https://unpkg.com/react-dom/dist/react-dom.min.js></script>'
   parsed.chunks.forEach(chunk => {
     switch(chunk.type){
     case "HTML":
@@ -135,7 +136,7 @@ function _transform(parsed){
       throw new Error("unknown chunk type: "+chunk.type)
       }
     })
-  return `${output.html}\n<script>${output.js.join('\n;/**/\n')}</script>`
+  return `${output.html}\n${injected_scripts}\n<script>${output.js.join('\n;/**/\n')}</script>`
 }
 
 function transform_babel(s){
@@ -162,10 +163,8 @@ function render_iframe(container,src){
   }
 }
 
-function svge(tagname){return document.createElementNS('http://www.w3.org/2000/svg',tagname)}
-
 function PlayUI(props){
-  var input,timeout,output,svg_el,lookup_scaled
+  var input,timeout,output,lookup_scaled
   let state = props.state || zero_state()
   let loading = <div className="Play-input">Loading...</div>
   let textarea = <textarea ref={input_ref} onChange={change} className="Play-input" disabled/>

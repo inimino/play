@@ -21,3 +21,5 @@ or collaborate with you.
 
 When you are done, click a button in the development environment to 
 deploy onto a server.
+
+Note that most of the above is not implemented yet.

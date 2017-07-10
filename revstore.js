@@ -19,12 +19,12 @@ function append(req,res){
 
 function get(req,res){
   const url = req.url
-  // XXX todo: shell-escape URL
-  cp.exec(`grep ${url} revstore_log`,{},(err,stdout,stderr) => {
-    // TODO: error handling
-    res.statusCode = 200
-    res.setHeader('Content-Type','text/plain')
-    res.end(stdout+stderr)})
+  var child = cp.spawn('grep',[url,'revstore_log'],{})
+  child.on('error',function(e){console.log(e)})
+  child.stderr.pipe(process.stderr,{end:false})
+  res.statusCode = 200
+  res.setHeader('Content-Type','text/plain')
+  child.stdout.pipe(res)
 }
 
 const server = http.createServer((req, res) => {

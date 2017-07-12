@@ -39,6 +39,15 @@
   /*width:80ch;*/
 }
 
+/* not used yet */
+div.Play-input-shadow {
+  font:monospace;
+  font-size:20px;
+  height:100%;
+  min-width:240px;
+  width:50ch;
+}
+
 .Play-output {
   flex:1 1 auto;
   border:1px solid #000;

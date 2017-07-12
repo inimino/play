@@ -230,18 +230,22 @@ function PlayUI(props){
 
 function HistoryBar(props){
   let state=props.state,emit=props.emit
-  if(!state || !state.history) return <div/>
+  if(!state || !state.history || state.history.length<2) return <div/>
   let history=state.history,start,end,diff,scale,tss,highlight,svg_el,hb_replay_timeout
   start = history[0].ts
   end = history[history.length-1].ts
   diff=end-start
   scale=1/diff
-  tss=history.map(h => (h.ts-start)*scale)
+  tss=history.map(h => scale_value(h.ts))
+  function scale_value(ts){
+    //return (ts-start)*scale // linear
+    return 1 - Math.log(end-ts+1)/Math.log(diff+1) // log scale
+  }
   highlight = state.history_view_index==null ? null : tss[state.history_view_index]
   function lookup_scaled(scaled_value){
     var value,index
     history.some(function(h,i){
-      if((h.ts-start)*scale <= scaled_value) {
+      if(scale_value(h.ts) <= scaled_value) {
         value = h
         index = i
         return false}
@@ -306,7 +310,8 @@ function HistoryBar(props){
     curr = state.history[state.history_view_index]
     next = state.history[state.history_view_index+1]
     if(!next) {hb_reset(); return}
-    time_diff = Math.min(1000, next.ts - curr.ts)
+    //time_diff = Math.min(1000, next.ts - curr.ts) // real-time w/o delays
+    time_diff = Math.min(1000, (next.ts - curr.ts) / 16)
     hb_replay_timeout=setTimeout(hb_forward,time_diff)
   }
 }

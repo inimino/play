@@ -267,6 +267,7 @@ function HistoryBar(props){
         }
       </svg>
       <div>
+        <button onClick={hb_first} disabled={replaying}>|&lt;</button>
         <button onClick={highlight==null?hb_penultimate:hb_backward} disabled={replaying}>&lt;</button>
         <button onClick={hb_forward} disabled={highlight==null||replaying}>></button>
         <button onClick={hb_reset} disabled={highlight==null||replaying}>>|</button>
@@ -283,6 +284,9 @@ function HistoryBar(props){
       </div>
       */}
     </div>)
+  function hb_first(e){
+    emit({type:"history-view-rev"
+         ,history_index:0})}
   function hb_penultimate(e){
     emit({type:"history-view-rev"
          ,history_index:state.history.length-2})}

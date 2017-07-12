@@ -19,7 +19,7 @@ function append(req,res){
 
 function get(req,res){
   const url = req.url
-  var child = cp.spawn('grep',[url,'revstore_log'],{})
+  var child = cp.spawn('grep',['^'+url+' ','revstore_log'],{})
   child.on('error',function(e){console.log(e)})
   child.stderr.pipe(process.stderr,{end:false})
   res.statusCode = 200

@@ -119,7 +119,8 @@ function _transform(parsed){
     ,js:[]
     ,css:[]
     }
-  var injected_scripts='<script src=https://unpkg.com/react/dist/react.min.js></script>\n<script src=https://unpkg.com/react-dom/dist/react-dom.min.js></script>'
+  //var injected_scripts='<script src=https://unpkg.com/react/dist/react.min.js></script>\n<script src=https://unpkg.com/react-dom/dist/react-dom.min.js></script>'
+  var injected_scripts='<script src=react.min.js></script><script src=react-dom.min.js></script>'
   parsed.chunks.forEach(chunk => {
     switch(chunk.type){
     case "HTML":

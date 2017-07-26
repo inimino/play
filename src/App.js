@@ -175,24 +175,11 @@ function render_iframe(container,src){
   }
 }
 
-class Textarea extends React.PureComponent {
-  shouldComponentUpdate(nextProps, nextState) {
-    //console.log(nextProps.onChange===this.props.onChange)
-    console.log(nextProps)
-    console.log(nextState)
-    return false;}
-  render() {
-    console.log('Textarea.render')
-    var props=this.props
-    return <textarea ref={props.el_ref} onChange={props.onChange} className="Play-input" disabled={props.disabled}/>}
-}
-
 function PlayUI(props){
   var input,timeout,output
   let state = props.state || zero_state()
   let loading = <div className="Play-input">Loading...</div>
-  let textarea = <Textarea el_ref={input_ref} onChange={change} className="Play-input" disabled={state.readonly}/>
-  //let textarea = <textarea ref={input_ref} onChange={change} className="Play-input" disabled={state.readonly}/>
+  let textarea = <textarea ref={input_ref} onChange={change} className="Play-input" disabled={state.readonly}/>
   let content = state==null || state.content==null ? loading : textarea
   function input_ref(el){
     if(!el)return
@@ -201,6 +188,7 @@ function PlayUI(props){
     //input.disabled=state.readonly
     //if(input.value == state.content) return
     if(input.value != state.content) input.value=state.content
+    //input.value = state.content
     //setTimeout(() => load_iframe(state.content),0)
     setTimeout(() => load_iframe(state.transformed),0)
     }

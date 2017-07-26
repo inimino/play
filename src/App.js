@@ -1,7 +1,9 @@
-import React, { Component } from 'react';
+import React from 'react';
 import DMP from 'diff-match-patch';
-import logo from './logo.svg';
 import './App.css';
+import exercises from './exercises.json';
+
+/* eslint eqeqeq: "off" */
 
 var Babel = require('babel-standalone')
 
@@ -59,7 +61,7 @@ function handle_event(state,e){
   default:
     throw new Error('unknown event type: '+e.type)
   }
-  if(next.content != state.content){
+  if(next.content !== state.content){
     next.parsed = parse(next.content)
     next.transformed = transform(next.parsed)
   }
@@ -88,11 +90,13 @@ function get_history(path){
  */
 function parse(s){
   var lines,state,ret,re,m,i
+  s = do_exercise_replacement(s)
   lines = s.split(/\r\n|\r|\n/g)
   state = {mode:"HTML",buffer:[]}
   ret = {chunks:[]}
   re = /^# (.+)$/
   for(i=0;i<lines.length;i++){
+    // eslint-disable-next-line
     if((m = re.exec(lines[i])) && lines[i+1] === ""){
       combine()
       i++
@@ -107,6 +111,12 @@ function parse(s){
     // XXX normalizes all newlines to Unix style
     ret.chunks.push({type:state.mode,content:state.buffer.join('\n')})}}
 
+function do_exercise_replacement(s){
+  return s.replace(/^# load (.*)\n/,function(a,b){
+    //if(!exercises[b]) throw new Error('not found: exercises/'+b)
+    if(!exercises[b]) return 'Not found: ' + b
+    return exercises[b]+'\n'})}
+
 function transform(parsed){
   var s
   try{s = _transform(parsed)}
@@ -120,7 +130,8 @@ function _transform(parsed){
     ,css:[]
     }
   //var injected_scripts='<script src=https://unpkg.com/react/dist/react.min.js></script>\n<script src=https://unpkg.com/react-dom/dist/react-dom.min.js></script>'
-  var injected_scripts='<script src=react.min.js></script><script src=react-dom.min.js></script>'
+  var injected_scripts='<script src=/react.js></script><script src=/react-dom.js></script>'
+  injected_scripts += '<script src=react.js></script><script src=react-dom.js></script>'
   parsed.chunks.forEach(chunk => {
     switch(chunk.type){
     case "HTML":
@@ -137,7 +148,7 @@ function _transform(parsed){
       throw new Error("unknown chunk type: "+chunk.type)
       }
     })
-  return `${output.html}\n${injected_scripts}\n<script>${output.js.join('\n;/**/\n')}</script>`
+  return `${output.html}\n${injected_scripts}\n<script>\n${output.js.join('\n;/**/\n')}\n</script>`
 }
 
 function transform_babel(s){
@@ -164,18 +175,32 @@ function render_iframe(container,src){
   }
 }
 
+class Textarea extends React.PureComponent {
+  shouldComponentUpdate(nextProps, nextState) {
+    //console.log(nextProps.onChange===this.props.onChange)
+    console.log(nextProps)
+    console.log(nextState)
+    return false;}
+  render() {
+    console.log('Textarea.render')
+    var props=this.props
+    return <textarea ref={props.el_ref} onChange={props.onChange} className="Play-input" disabled={props.disabled}/>}
+}
+
 function PlayUI(props){
-  var input,timeout,output,lookup_scaled
+  var input,timeout,output
   let state = props.state || zero_state()
   let loading = <div className="Play-input">Loading...</div>
-  let textarea = <textarea ref={input_ref} onChange={change} className="Play-input" disabled/>
+  let textarea = <Textarea el_ref={input_ref} onChange={change} className="Play-input" disabled={state.readonly}/>
+  //let textarea = <textarea ref={input_ref} onChange={change} className="Play-input" disabled={state.readonly}/>
   let content = state==null || state.content==null ? loading : textarea
   function input_ref(el){
     if(!el)return
     input=el
-    input.disabled=state.readonly
+    //input.onkeyup=function(e){alert(e.keyCode)}
+    //input.disabled=state.readonly
     //if(input.value == state.content) return
-    input.value=state.content
+    if(input.value != state.content) input.value=state.content
     //setTimeout(() => load_iframe(state.content),0)
     setTimeout(() => load_iframe(state.transformed),0)
     }
@@ -185,19 +210,21 @@ function PlayUI(props){
   }
   function update(){
     var s=input.value
-    console.log(window.location.pathname)
     var path = window.location.pathname
     var patch_text=patch_from_a_b(state.content,s)
     var req = new Request(`/fs${path}`,{method:'PATCH',body:patch_text})
-    fetch(req).then(res => res.text()).then(console.log)
+    fetch(req).then(res => res.text()).then(text => {if(text!='{"status":"success"}')console.log(text)})
     //load_iframe(s)
     emit({type:"history-local-extend",content:s,history_item:{path:path,ts:Date.now(),patch:patch_text}})
+  }
+  function login(){
+    // if logged in, log out
+    // otherwise, log in
   }
   function change(){
     clearTimeout(timeout)
     timeout=setTimeout(update,200)}
   function emit(e){
-    console.log(e)
     var next = handle_event(state,e)
     props.onChange(next)}
   if(props.state == null){
@@ -215,6 +242,19 @@ function PlayUI(props){
       <div className="App-header">
         {/*<img src={logo} className="App-logo" alt="logo"/>*/}
         <h2>Welcome to Play</h2>
+        <div className="user">
+          <div className="welcome">Welcome, {state.username||"Guest"}!</div>
+          <form className="login" action="login" method="POST">
+                <div><input type="email" name="email" placeholder="email@example.com"/>
+                     <button onClick={login}>{state.username?"logout":"register/login"}</button>
+                </div>
+                <div><input type="text" name="username" placeholder="username"/>
+                     <input type="password" name="password" placeholder="password"/>
+                     <input type="submit" value="login"/>
+                </div>
+                <aside className="Login-hint">hint</aside>
+          </form>
+        </div>
         <div className="controls">
           <HistoryBar state={state} emit={emit}/>
         </div>
@@ -232,11 +272,10 @@ function PlayUI(props){
 function HistoryBar(props){
   let state=props.state,emit=props.emit
   if(!state || !state.history || state.history.length<2) return <div/>
-  let history=state.history,start,end,diff,scale,tss,highlight,svg_el,hb_replay_timeout
+  let history=state.history,start,end,diff,tss,highlight,svg_el,hb_replay_timeout
   start = history[0].ts
   end = history[history.length-1].ts
   diff=end-start
-  scale=1/diff
   tss=history.map(h => scale_value(h.ts))
   function scale_value(ts){
     //return (ts-start)*scale // linear
@@ -244,10 +283,10 @@ function HistoryBar(props){
   }
   highlight = state.history_view_index==null ? null : tss[state.history_view_index]
   function lookup_scaled(scaled_value){
-    var value,index
+    var index
     history.some(function(h,i){
       if(scale_value(h.ts) <= scaled_value) {
-        value = h
+        //value = h
         index = i
         return false}
       else return true
@@ -311,7 +350,6 @@ function HistoryBar(props){
     emit({type:"history-view-rev",history_index:lookup_scaled(x_offset/max_width)})}
   function replay_step(){
     var curr,next,time_diff
-    console.log('replay '+state.history_view_index)
     curr = state.history[state.history_view_index]
     next = state.history[state.history_view_index+1]
     if(!next) {hb_reset(); return}

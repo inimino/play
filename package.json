@@ -4,7 +4,11 @@
   "private": true,
   "dependencies": {
     "babel-standalone": "^6.25.0",
+    "body-parser": "^1.17.2",
+    "connect": "^3.6.2",
     "diff-match-patch": "^1.0.0",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0",
     "react": "^15.6.1",
     "react-dom": "^15.6.1"
   },
@@ -12,7 +16,7 @@
     "react-scripts": "1.0.7"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "src/setup-public; react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
@@ -20,6 +24,12 @@
   },
   "proxy": {
     "fs": {
+      "target": "http://localhost:4000"
+    },
+    "login": {
+      "target": "http://localhost:4000"
+    },
+    "meta": {
       "target": "http://localhost:4000"
     }
   }

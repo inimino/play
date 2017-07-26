@@ -61,6 +61,9 @@ function handle_event(state,e){
   default:
     throw new Error('unknown event type: '+e.type)
   }
+  if(window.location && window.location.href == 'https://play.inimino.org/'){
+    // quick hack for permissions on main site
+    next.readonly = true}
   if(next.content !== state.content){
     next.parsed = parse(next.content)
     next.transformed = transform(next.parsed)
@@ -177,6 +180,7 @@ function render_iframe(container,src){
 
 function PlayUI(props){
   var input,timeout,output
+  let maximized = window.location.hash == '#max'
   let state = props.state || zero_state()
   let loading = <div className="Play-input">Loading...</div>
   let textarea = <textarea ref={input_ref} onChange={change} className="Play-input" disabled={state.readonly}/>
@@ -249,7 +253,7 @@ function PlayUI(props){
       </div>
       <div className="Play-container">
         {content}
-        <div ref={e => output=e} className="Play-output"/>
+        <div ref={e => output=e} className={"Play-output" + (maximized?' Play-output-maximized':'')}/>
         {/*<div className="Play-output"><pre>{state.transformed}</pre></div>*/}
         {/*<div className="Play-output"><iframe src={"data:text/html,"+state.transformed}/></div>*/}
       </div>

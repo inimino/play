@@ -64,11 +64,21 @@ div.Play-input-shadow {
   width:50ch;
 }
 
+.Play-output-maximized {
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+}
+
 .Play-output {
   flex:1 1 auto;
   border:1px solid #000;
   min-width:240px;
   height:100%;
+  background:#fff;
+  color:#000;
 }
 
 .Play-output > * {

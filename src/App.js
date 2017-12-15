@@ -336,8 +336,10 @@ function HistoryBar(props){
     emit({type:"history-replay-stop"})}
   function hb_click(e){
     if(replaying) return
-    var x_offset = e.clientX - svg_el.offsetLeft
-    var max_width = svg_el.clientWidth * scale_factor
+    var rect=svg_el.getBoundingClientRect()
+    //var x_offset = e.clientX - svg_el.offsetLeft
+    var x_offset = e.clientX - rect.x
+    var max_width = rect.width * scale_factor
     emit({type:"history-view-rev",history_index:lookup_scaled(x_offset/max_width)})}
   function replay_step(){
     var curr,next,time_diff

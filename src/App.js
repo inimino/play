@@ -247,7 +247,7 @@ function PlayUI(props){
           </form>
         </div>
         <div className="controls">
-          <HistoryBar state={state} emit={emit}/>
+          <HistoryBarWithButtons state={state} emit={emit}/>
         </div>
       </div>
       <div className="Play-container">
@@ -261,42 +261,67 @@ function PlayUI(props){
 }
 
 function HistoryBar(props){
-  let state=props.state,emit=props.emit
-  if(!state || !state.history || state.history.length<2) return <div/>
-  let history=state.history,start,end,diff,tss,highlight,svg_el,hb_replay_timeout
-  start = history[0].ts
-  end = history[history.length-1].ts
+  let svg_el
+    , onSelectIndex=props.onSelectIndex
+    , tss=props.history
+    , scaled_tss,start,end,diff
+    , selected_index=props.selectedIndex
+    , highlight
+    , scale_factor
+  scale_factor = 0.900
+  start = tss[0]
+  end = tss[tss.length-1]
   diff=end-start
-  tss=history.map(h => scale_value(h.ts))
-  function scale_value(ts){
+  scaled_tss=tss.map(normalize_value)
+  highlight = selected_index==null ? null : tss[selected_index]
+  return (
+    <svg ref={el => svg_el=el} onClick={hb_click} height="20px" viewBox="0 0 1000 20" className="hb">
+      <rect x="1" y="1" fill="black" height="18" width="998"/>
+      <line y1="10" y2="10" x1="0" x2="1000" stroke="#888" strokeWidth="4"/>
+      {scaled_tss.map((ts,i) => <rect key={i} x={1000*scale_factor*ts} y="6" fill="white" height="8" width="8"/>)}
+      {highlight &&
+        <rect x={1000*scale_factor*normalize_value(highlight)} y="6" fill="red" height="8" width="8"/>
+      }
+    </svg>
+  )
+  function hb_click(e){
+    if(!onSelectIndex)return
+    var rect=svg_el.getBoundingClientRect()
+    //var x_offset = e.clientX - svg_el.offsetLeft
+    var x_offset = e.clientX - rect.x
+    var max_width = rect.width * scale_factor
+    onSelectIndex(lookup_scaled(x_offset/max_width))
+  }
+  function normalize_value(ts){
     //return (ts-start)*scale // linear
     return 1 - Math.log(end-ts+1)/Math.log(diff+1) // log scale
   }
-  highlight = state.history_view_index==null ? null : tss[state.history_view_index]
   function lookup_scaled(scaled_value){
     var index
-    history.some(function(h,i){
-      if(scale_value(h.ts) <= scaled_value) {
-        //value = h
+    tss.some(function(ts,i){
+      if(normalize_value(ts) <= scaled_value) {
         index = i
         return false}
       else return true
     })
     return index
   }
-  var scale_factor = 0.900
+}
+
+function HistoryBarWithButtons(props){
+  let state=props.state,emit=props.emit
+  if(!state || !state.history || state.history.length<2) return <div/>
+  let history=state.history,start,end,diff,tss,highlight,svg_el,hb_replay_timeout
+  start = history[0].ts
+  end = history[history.length-1].ts
+  diff=end-start
+  tss=history.map(h => h.ts)
+  highlight = state.history_view_index==null ? null : tss[state.history_view_index]
   var replaying = state.history_is_replaying
   if(replaying) replay_step()
   return (
     <div className="HistoryBar">
-      <svg ref={el => svg_el=el} onClick={hb_click} height="20px" viewBox="0 0 1000 20" className="hb">
-        <rect x="1" y="1" fill="black" height="18" width="998"/>
-        <line y1="10" y2="10" x1="0" x2="1000" stroke="#888" strokeWidth="4"/>
-        {tss.map((ts,i) => <rect key={i} x={1000*scale_factor*ts} y="6" fill="white" height="8" width="8"/>)}
-        {highlight==null ? null :
-          <rect x={1000*scale_factor*highlight} y="6" fill="red" height="8" width="8"/>
-        }
-      </svg>
+      <HistoryBar onSelectIndex={select_index} selectedIndex={state.history_view_index} history={tss}/>
       <div>
         <button onClick={hb_first} disabled={replaying}>|&lt;</button>
         <button onClick={highlight==null?hb_penultimate:hb_backward} disabled={replaying}>&lt;</button>
@@ -334,13 +359,9 @@ function HistoryBar(props){
   function hb_replay_stop(e){
     clearTimeout(hb_replay_timeout)
     emit({type:"history-replay-stop"})}
-  function hb_click(e){
-    if(replaying) return
-    var rect=svg_el.getBoundingClientRect()
-    //var x_offset = e.clientX - svg_el.offsetLeft
-    var x_offset = e.clientX - rect.x
-    var max_width = rect.width * scale_factor
-    emit({type:"history-view-rev",history_index:lookup_scaled(x_offset/max_width)})}
+  function select_index(index){
+    if(replaying)return
+    emit({type:"history-view-rev",history_index:index})}
   function replay_step(){
     var curr,next,time_diff
     curr = state.history[state.history_view_index]

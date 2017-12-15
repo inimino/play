@@ -2,6 +2,7 @@
   "name": "play-app",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://play.inimino.org/",
   "dependencies": {
     "babel-standalone": "^6.25.0",
     "body-parser": "^1.17.2",

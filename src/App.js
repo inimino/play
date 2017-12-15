@@ -183,7 +183,7 @@ function PlayUI(props){
   let maximized = window.location.hash == '#max'
   let state = props.state || zero_state()
   let loading = <div className="Play-input">Loading...</div>
-  let textarea = <textarea ref={input_ref} onChange={change} className="Play-input" disabled={state.readonly}/>
+  let textarea = <textarea ref={input_ref} onChange={change} className="Play-input" spellCheck="false" disabled={state.readonly}/>
   let content = state==null || state.content==null ? loading : textarea
   function input_ref(el){
     if(!el)return
@@ -223,6 +223,7 @@ function PlayUI(props){
     get_history(props.path).then(body => {
       let history = body.split('\n').filter(l => Boolean(l)).map(line => {
         let m = line.match(/^([^ ]*) (\d*) (.*)$/)
+        if(!m) throw new Error('cannot read history from '+props.path+' '+line)
         return {path:m[1]
                ,ts:m[2]
                ,patch:JSON.parse(m[3])}})
@@ -232,8 +233,6 @@ function PlayUI(props){
   return(
     <div className="App">
       <div className="App-header">
-        {/*<img src={logo} className="App-logo" alt="logo"/>*/}
-        <h2>Welcome to Play</h2>
         <div className="user">
           <div className="welcome">Welcome, {state.username||"Guest"}!</div>
           <form className="login" action="login" method="POST">

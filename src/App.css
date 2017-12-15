@@ -2,14 +2,9 @@
   text-align: center;
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 80px;
-}
-
 .App-header {
-  background-color: #222;
-  padding: 20px;
+  background-color: #117;
+  padding: 8px;
   color: white;
 }
 
@@ -32,11 +27,6 @@ form.login {
 
 .App-intro {
   font-size: large;
-}
-
-@keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 
 .Play-container {
@@ -86,7 +76,7 @@ div.Play-input-shadow {
   height:100%;
   box-sizing:border-box;
   margin:0;
-  padding:1em 0;
+  padding:0;
   overflow:auto
 }
 

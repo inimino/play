@@ -8,6 +8,7 @@
     "body-parser": "^1.17.2",
     "connect": "^3.6.2",
     "diff-match-patch": "^1.0.0",
+    "history-bar": "^0.1.0",
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
     "react": "^15.6.1",
